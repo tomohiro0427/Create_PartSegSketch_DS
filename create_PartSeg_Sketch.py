@@ -24,13 +24,17 @@ def CreatePoint2Sketch(args):
             class_id = module_dataset.get_class_id(args.class_choice)
 
             view = args.view
-            save_path = os.path.join(args.save_path,args.split, class_id,name)
+            if args.save_TF:
+                save_path = os.path.join(args.save_path,args.split, class_id,name)
+            else:
+                save_path = os.path.join(args.dataset_path,args.split, class_id,name)
+
             editOrFix = args.editOrFix
 
             corners = get_max_min_points(points)#点群の最大値と最小値から8つの角の座標を取得
             img_paths = point2imageWithLabelView(points,label, corners,  view, editOrFix=editOrFix, save_path= save_path )#点群を画像に変換
 
-            center_crop_size = (350, 350)
+            center_crop_size = (400, 400)
             centerCrop_images(img_paths,  center_crop_size)#画像をクロップ
             image2sketch(img_paths)#画像をスケッチに変換
 
@@ -67,6 +71,7 @@ if __name__ == "__main__":
                         help='file format of visualization')
     parser.add_argument('--view', type=str, default='X-1Y1Z-1', metavar='N',
                         choices=['X-1Y1Z-1', 'X-0.5Y1Z-1', 'X0Y1Z-1', 'X0.5Y1Z-1', 'X1Y1Z-1', 'X-1Y1Z-0.5', 'X1Y1Z-0.5'])
+    parser.add_argument('--save_TF', action='store_true', default=False,)  
     args = parser.parse_args()
 
     CreatePoint2Sketch(args)

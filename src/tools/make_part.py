@@ -5,6 +5,7 @@ import torch.nn as nn
 import random
 import torch.nn.functional as F
 import numpy as np
+from knn_cuda import KNN
 
 def fps(data, number):
     '''
@@ -119,4 +120,35 @@ def get_max_min_points(shape_all):
     return corners
 
 
+def first_zero_index(row):
+    zero_indices = np.where(row == 0)[0]
+    if zero_indices.size > 0:
+        return zero_indices[0] % 2048
+    else:
+        return -1  # 0が存在しない場合
+    
+def get_upsampled_labels(shape_all, shape_part, labels_part, k = 7):
+    B = shape_all.size(0)
+    N = shape_all.size(1)
+    M = shape_part.size(1)
+    # extend_all  = shape_all.unsqueeze(2)# [B, N, 3] -> [B, N, 1, 3]
+    # extend_part  = shape_part.unsqueeze(1)# [B, M, 3] -> [B, 1, M, 3]
+    # distance_matrix = torch.norm(extend_all - extend_part, p =2 ,dim = -1) # [B, M, N, 3]->[B, N, NM]
+    # idx = torch.argsort(distance_matrix,dim=-1, descending=False)
+    # zero_mask = torch.zeros_like(idx)# [B, M, N]
+    # zero_mask.scatter_(2, idx[:,:,:1],1)#k近傍のインデックスを1にする
+
+    knn = KNN(k=1, transpose_mode=True)
+    dist, indx = knn( shape_part,shape_all) #[B,N,1]
+
+    zero_mask = torch.zeros([B,N,M]).cuda()# [B, N, M]
+    zero_mask.scatter_(2, indx,1)#k近傍のインデックスを1にする
+ 
+    
+    labels_part = labels_part.unsqueeze(1).repeat(1,shape_all.size(1),1)# [B, M] -> [B, N, M]
+
+    zero_mask = zero_mask == 1 #[B, M, N]
+    all_labels = labels_part[zero_mask] # [B, M, N] -> [L, N]
+    
+    return all_labels.unsqueeze(0)
 

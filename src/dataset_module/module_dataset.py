@@ -11,6 +11,8 @@ from pathlib import Path
 import pandas as pd
 import cv2
 
+
+
 logger = logging.getLogger(__name__)
 
 # taken from https://github.com/optas/latent_3d_points/blob/8e8f29f8124ed5fc59439e8551ba7ef7567c9a37/src/in_out.py
@@ -153,25 +155,26 @@ class Uniform15KPC(data.Dataset):
         return len(self.train_points)
 
     def __getitem__(self, idx):
-        tr_out = self.train_points[idx]
-        if self.random_subsample:
-            tr_idxs = np.random.choice(tr_out.shape[0], self.tr_sample_size)
-        else:
-            tr_idxs = np.arange(self.tr_sample_size)
-        tr_out = torch.from_numpy(tr_out[tr_idxs, :]).float()
+        # tr_out = self.train_points[idx]
+        # if self.random_subsample:
+        #     tr_idxs = np.random.choice(tr_out.shape[0], self.tr_sample_size)
+        # else:
+        #     tr_idxs = np.arange(self.tr_sample_size)
+        # tr_out = torch.from_numpy(tr_out[tr_idxs, :]).float()
 
-        te_out = self.test_points[idx]
-        if self.random_subsample:
-            te_idxs = np.random.choice(te_out.shape[0], self.te_sample_size)
-        else:
-            te_idxs = np.arange(self.te_sample_size)
-        te_out = torch.from_numpy(te_out[te_idxs, :]).float()
+        # te_out = self.test_points[idx]
+        # if self.random_subsample:
+        #     te_idxs = np.random.choice(te_out.shape[0], self.te_sample_size)
+        # else:
+        #     te_idxs = np.arange(self.te_sample_size)
+        # te_out = torch.from_numpy(te_out[te_idxs, :]).float()
 
-        tr_ofs = tr_out.mean(0, keepdim=True)
-        te_ofs = te_out.mean(0, keepdim=True)
+        # tr_ofs = tr_out.mean(0, keepdim=True)
+        # te_ofs = te_out.mean(0, keepdim=True)
 
         shift, scale = self.get_standardize_stats(idx)
         shift, scale = torch.from_numpy(np.asarray(shift)), torch.from_numpy(np.asarray(scale))
+        allPoints  = self.all_points[idx]
         
         cate_idx = self.cate_idx_lst[idx]
         sid, mid = self.all_cate_mids[idx]
@@ -179,9 +182,10 @@ class Uniform15KPC(data.Dataset):
 
         return {
             'idx': idx,
-            'pointcloud': tr_out, # if self.split == 'train' else te_out
-            'pointcloud_ref': te_out,
-            'offset': tr_ofs if self.split == 'train' else te_ofs,
+            # 'pointcloud': tr_out, # if self.split == 'train' else te_out
+            # 'pointcloud_ref': te_out,
+            'pointcloud_all': allPoints,
+            # 'offset': tr_ofs if self.split == 'train' else te_ofs,
             'label': cate_idx,
             'sid': sid, 'mid': mid,
             'name': name,
@@ -208,7 +212,7 @@ class ShapeNet15kPointClouds(Uniform15KPC):
         else:
             self.synset_ids = [cate_to_synsetid[c] for c in self.cates]
 
-        assert 'v2' in root, "Only supporting v2 right now."
+        # assert 'v2' in root, "Only supporting v2 right now."
         self.gravity_axis = 1
         self.display_axis_order = [0, 2, 1]
 
@@ -426,3 +430,122 @@ class PointCloudWithPartSegLabelDS(data.Dataset):
             'scale': scale,
             'name': pc_name,
         }
+    
+class PointCloudWithPartSegSketch(data.Dataset):
+    def __init__(self, root, split = 'val', categories = ['chair'], get_images = ['edit_sketch']):
+        if categories not in ['all']:
+            synset_ids = [cate_to_synsetid[c] for c in categories]
+            self.root_dir = Path(root, split, synset_ids[0] )
+        else:
+            #作り変える
+            self.root_dir = Path(root)
+        print(self.root_dir)
+
+        self.input_dim = 3
+        self.all_points = []
+        self.all_labels = []
+        self.pc_paths = self.find_npy_files()
+        # Normalization
+        self.all_points = np.concatenate(self.all_points)  # (N, 15000, 3)
+        self.all_labels = np.concatenate(self.all_labels)  # (N, 15000)
+        self.all_points, [self.per_points_shift, self.per_points_scale] = point_operation.normalize_point_cloud(self.all_points, verbose=True)
+
+        self.data_paths = self.find_datas_dir()
+        self.get_images = get_images
+        for image_name in self.get_images:
+            if image_name == 'edit_sketch':
+                self.edit_sketch_data = self.get_image_data('edit_sketch.png')
+                self.edit_sketch_data = np.concatenate(self.edit_sketch_data)  # (N, 15000, 3)
+            elif image_name == 'fix_sketch':
+                self.fix_sketch_data = self.get_image_data('fix_sketch.png')
+                self.fix_sketch_data = np.concatenate(self.fix_sketch_data)
+            elif image_name == 'fix_image':
+                self.fix_data = self.get_image_data('fix.png')
+                self.fix_data = np.concatenate(self.fix_data)
+            elif image_name == 'edit_image':
+                self.edit_data = self.get_image_data('edit.png')
+                self.edit_data = np.concatenate(self.edit_data)
+
+    
+    def find_npy_files(self):
+        npy_paths = []
+        for path_pc in self.root_dir.glob('**/*.npy'):
+            npy_paths.append(path_pc.stem)
+            point_cloud = np.load(path_pc)
+            self.all_points.append(point_cloud[np.newaxis, ...])
+
+            parquet_data = pd.read_parquet(Path(path_pc.parent, f'{path_pc.stem}.parquet'))
+            label_data =  parquet_data['label'].values
+
+            self.all_labels.append(label_data[np.newaxis, ...])
+
+        return npy_paths
+    
+    def find_datas_dir(self):
+        dir_data_path = []
+        for path in self.root_dir.rglob('edit_sketch.png'):
+            dir_data_path.append(path.parent)
+        if len(dir_data_path) == 0:
+            print('No edit_sketch.png file found')
+        return dir_data_path
+    
+    def get_image_data(self, name='edit_sketch.png'):
+        image_data = []
+        for path in self.data_paths:
+            image_path = Path(path, name)
+            if not image_path.exists():
+                print(f'File not found: {image_path}')
+            else:
+                image = cv2.imread(str(image_path))
+                image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                image = Image.fromarray(image)
+                image = transforms.Resize((224, 224))(image)
+                image = transforms.ToTensor()(image)
+                image_data.append(image.unsqueeze(0))
+        return image_data
+    
+    def get_standardize_stats(self, idx):
+        shift = self.per_points_shift[idx].reshape(1, self.input_dim)
+        scale = self.per_points_scale[idx].reshape(1, -1)
+        return shift, scale  
+
+
+    def __len__(self):
+        return len(self.data_paths)
+
+    def __getitem__(self, idx):
+        data_path = self.data_paths[idx]
+        
+        # 動的にreturn辞書を構築
+        return_dict = {}
+
+        for img_name in self.get_images:
+            if img_name == 'edit_sketch':
+                return_dict['edit_sketch'] = self.edit_sketch_data[idx]
+            elif img_name == 'fix_sketch':
+                return_dict['fix_sketch'] = self.fix_sketch_data[idx]
+            elif img_name == 'fix_image':
+                return_dict['fix_image'] = self.fix_data[idx]
+            elif img_name == 'edit_image':
+                return_dict['edit_image'] = self.edit_data[idx]
+
+        # point cloudのindexを取得
+        index_pc = self.pc_paths.index(data_path.parents[1].stem)
+        point_cloud = torch.tensor(self.all_points[index_pc])
+        label = torch.tensor(self.all_labels[index_pc])
+
+        # 正規化の値を取得
+        shift, scale = self.get_standardize_stats(idx)
+        shift, scale = torch.from_numpy(np.asarray(shift)), torch.from_numpy(np.asarray(scale))
+
+        # return辞書に他の固定的な値を追加
+        return_dict.update({
+            'point_cloud': point_cloud,
+            'label': label,
+            'path': str(data_path),
+            'shift': shift,
+            'scale': scale,
+            'name': data_path.parents[1].stem,
+        })
+        
+        return return_dict
