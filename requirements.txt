@@ -1,0 +1,7 @@
+plyfile==1.0.3
+pandas==2.2.2
+open3d==0.18.0
+opencv-python==4.10.0.84
+pyarrow==16.1.0
+fastparquet==2024.5.0
+ninja==1.11.1.1

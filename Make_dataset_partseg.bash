@@ -12,6 +12,7 @@
 #Europe
 v2_path="/home/tomohiro/workspace/Dataset/ShapeNetCore.v2.PC15k"
 output_path="/home/tomohiro/workspace/Dataset/PointsPartSegWithSketch"
+# output_path="/home/tomohiro/workspace/Dataset/test"
 echo "${v2_path}"
 echo "${output_path}"
 
