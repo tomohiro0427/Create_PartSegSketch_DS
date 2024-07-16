@@ -65,30 +65,34 @@ bash Make_dataset_partseg.bash
 ```
 PcWithSketchDataset/
 ├── train/
-│   ├── 0300167[Class]/
-│   │   ├── 1ace72a....[One Pc data]/
-│   │   │   ├── X0.5Y1Z-1[view]/
+│   ├── 0300167/ [Class]
+│   │   ├── 1ace72an/ [One Pc data]
+│   │   │   ├── 1ace72an.npy
+│   │   │   ├── 1ace72an.parquest
+│   │   │   │
+│   │   │   ├── X0.5Y1Z-1/ [view]
 │   │   │   │   ├── shape_all.png
 │   │   │   │   ├── shape_all_sketch.png
-│   │   │   │   ├── 12[Part label]/
+│   │   │   │   │
+│   │   │   │   ├── 12/ [Part label]
 │   │   │   │   │   ├── edit.png
 │   │   │   │   │   ├── edit_sketch.png
 │   │   │   │   │   ├── fix.png
 │   │   │   │   │   └── fix_sketch.png
 │   │   │   │   │
-│   │   │   │   └── 13[Part label]/
+│   │   │   │   └── 13/ [Part label]
 │   │   │   │        ├── ...
 │   │   │   │        ├── ...
 │   │   │   │    
-│   │   │   └── X0Y1Z-1[view]/
+│   │   │   └── X0Y1Z-1/ [view]
 │   │   │        ├── ...
 │   │   │        ├── ...
 │   │   │  
-│   │   └── 2afa06....[One Pc data]/
+│   │   └── 2afa06.../ [One Pc data]
 │   │        ├── ....
 │   │        ├── ....
 │   │   
-│   └── 123455[Class]/
+│   └── 123455/ [Class]
 │        ├── ....
 │        ├── ....
 │    
