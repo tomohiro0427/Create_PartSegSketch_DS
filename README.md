@@ -7,13 +7,13 @@ python ==3 .10<br>
 pytorch == 2.3.1　<br>
 cuda == 11.8　<br>
 
-plyfile
-pandas
-open3d
-opencv-python
-pyarrow
-fastparquet
-ninja
+plyfile,
+pandas,
+open3d,
+opencv-python,
+pyarrow,
+fastparquet,
+ninja,
 
 ---
 
