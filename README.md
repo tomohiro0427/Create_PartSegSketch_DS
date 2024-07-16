@@ -2,10 +2,15 @@
 # Pairs of Point Cloud PartSeg Labels and Sketch Images
 A dataset that creates pairs of point clouds and sketches for each part based on PartSegmentation results by [DGCNN](https://github.com/antao97/dgcnn.pytorch/tree/master)
 
+##  Improvement Code
+[] Get Error if shapeNetv2 root path is incorrect
+[] Get Warning if Dataset Structure is incorrect
+[] Improve this git strucure , for instance model.py moving to "src" dir
+
 ## Requirements
-python ==3 .10<br>
-pytorch == 2.3.1　<br>
-cuda == 11.8　<br>
+python = 3 .10<br>
+pytorch = 2.3.1　<br>
+cuda = 11.8　<br>
 
 plyfile,
 pandas,
@@ -14,6 +19,9 @@ opencv-python,
 pyarrow,
 fastparquet,
 ninja,
+
+PointNet2
+Cuda KNN
 
 ---
 
