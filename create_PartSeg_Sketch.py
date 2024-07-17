@@ -39,7 +39,7 @@ def CreatePoint2Sketch(args):
             image2sketch(img_paths)#画像をスケッチに変換
 
             #全体画像
-            if not os.path.exists(os.path.join(save_path, "shape_all.png")):
+            if not os.path.exists(os.path.join(save_path,f"{view}" , "shape_all.png")):
                 allPC_path = point2imageWithView(points, corners,view, save_path= save_path, name="shape_all")
                 centerCrop_images(allPC_path,  center_crop_size)
                 image2sketch(allPC_path)
