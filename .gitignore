@@ -3,3 +3,6 @@ wandb/
 output/
 __pycache__/
 */__pycache__/
+pretrained/
+*/pretrained/
+*.pth

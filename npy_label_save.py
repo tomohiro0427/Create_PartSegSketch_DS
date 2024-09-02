@@ -172,7 +172,8 @@ def test(args):
             #     print(filtered_points.shape)
             #     _ = point2imageWithCorner(filtered_points, corners, save_path= "./test_out/labels3", name = str(i))
             tqdmbar.set_postfix( crop_time=tm, name=name)
-
+            if i == 2:
+                break
             # break
 
 
@@ -230,13 +231,13 @@ if __name__ == "__main__":
     parser.add_argument('--visu_format', type=str, default='ply',
                         help='file format of visualization')
     parser.add_argument('--dataset_path', type=str, 
-                        default='/home/tomohiro/VAL/Train_CanonicalVAE/mini_dataset_3',
+                        default='../Dataset/ShapeNetCore.v2.PC15k/',
                         help='file format of visualization')
     parser.add_argument('--split', type=str, default='val',
                         help='file format of visualization')
     parser.add_argument('--categories', type=str, default='chair',
                         help='file format of visualization')
-    parser.add_argument('--output_path', type=str, default='../Dataset/PointsPartSegWithSketch',
+    parser.add_argument('--output_path', type=str, default='./output/',
                         help='file format of visualization')
     args = parser.parse_args()
 
