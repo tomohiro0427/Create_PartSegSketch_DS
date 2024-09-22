@@ -6,3 +6,4 @@ __pycache__/
 pretrained/
 */pretrained/
 *.pth
+output2/

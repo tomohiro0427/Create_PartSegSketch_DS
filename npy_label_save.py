@@ -172,8 +172,8 @@ def test(args):
             #     print(filtered_points.shape)
             #     _ = point2imageWithCorner(filtered_points, corners, save_path= "./test_out/labels3", name = str(i))
             tqdmbar.set_postfix( crop_time=tm, name=name)
-            if i == 2:
-                break
+            # if i == 10:
+            #     break
             # break
 
 
@@ -237,7 +237,7 @@ if __name__ == "__main__":
                         help='file format of visualization')
     parser.add_argument('--categories', type=str, default='chair',
                         help='file format of visualization')
-    parser.add_argument('--output_path', type=str, default='./output/',
+    parser.add_argument('--output_path', type=str, default='./output2/',
                         help='file format of visualization')
     args = parser.parse_args()
 
